@@ -558,12 +558,11 @@ export function TreatmentsTab({
   const isMedico = React.useMemo(() => {
     // Solo el Médico y el Administrador pueden prescribir o suspender tratamientos clínicos
     return (
-      hasPermission("acceso.mis-pacientes") ||
       user?.role?.name?.toLowerCase().includes("medico") ||
       user?.role?.name?.toLowerCase().includes("médico") ||
       isAdmin
     );
-  }, [user, hasPermission, isAdmin]);
+  }, [user, isAdmin]);
 
   const tratamientos: Tratamiento[] = inpatient.tratamientos ?? [];
   const activeTreatments = tratamientos.filter((t) => t.estado === 0);

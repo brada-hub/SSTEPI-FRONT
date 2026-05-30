@@ -98,20 +98,18 @@ export function PatientClinicalPanel({
   // Role checks - Grant full access to Admin for easy testing
   const isMedico = React.useMemo(() => {
     return (
-      hasPermission("acceso.mis-pacientes") ||
       user?.role?.name?.toLowerCase().includes("medico") ||
       user?.role?.name?.toLowerCase().includes("médico") ||
       isAdmin
     );
-  }, [user, hasPermission, isAdmin]);
+  }, [user, isAdmin]);
 
   const isNutricionista = React.useMemo(() => {
     return (
-      hasPermission("acceso.nutricion") ||
       user?.role?.name?.toLowerCase().includes("nutri") ||
       isAdmin
     );
-  }, [user, hasPermission, isAdmin]);
+  }, [user, isAdmin]);
 
   const isEnfermeria = React.useMemo(() => {
     return (
