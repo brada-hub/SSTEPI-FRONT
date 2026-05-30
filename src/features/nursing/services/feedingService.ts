@@ -15,6 +15,10 @@ export interface Alimentacion {
   via_administracion: string;
   estado: number; // 0=activa, 1=suspendida, 2=finalizada
   observaciones?: string;
+  descripcion?: string;
+  restricciones?: string;
+  fecha_inicio?: string;
+  fecha_fin?: string;
   created_at?: string;
   updated_at?: string;
 }
@@ -23,8 +27,14 @@ export interface AlimentacionPayload {
   internacion_id: number;
   tipo_dieta_id: number;
   via_administracion: string;
-  observaciones?: string;
+  frecuencia_tiempos: number;
+  tiempos: { tiempo_comida: string; descripcion?: string }[];
+  fecha_inicio: string;
+  fecha_fin: string;
+  restricciones?: string;
+  descripcion?: string;
   estado?: number;
+  observaciones?: string;
 }
 
 // ── Service ───────────────────────────────────────────────────────────────────
@@ -46,8 +56,8 @@ export async function updateAlimentacion(
   return res.data;
 }
 
-export async function suspenderAlimentacion(id: number): Promise<void> {
-  await api.put(`/alimentaciones/${id}`, { estado: 1 });
+export async function suspenderAlimentacion(id: number, motivo: string): Promise<void> {
+  await api.post(`/alimentaciones/${id}/suspender`, { motivo_suspension: motivo });
 }
 
 export interface Consumo {

@@ -398,8 +398,8 @@ export function PatientClinicalPanel({
                   onModificar={async (id: number, d: Partial<AlimentacionPayload>) => {
                     await modificarDieta.mutateAsync({ id, data: d });
                   }}
-                  onSuspender={async (id: number) => {
-                    await suspenderDieta.mutateAsync(id);
+                  onSuspender={async (id: number, motivo: string) => {
+                    await suspenderDieta.mutateAsync({ id, motivo });
                   }}
                   isPending={
                     asignarDieta.isPending || modificarDieta.isPending || suspenderDieta.isPending

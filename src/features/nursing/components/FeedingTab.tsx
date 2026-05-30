@@ -23,6 +23,13 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { SuspendDialog } from "@/features/nursing/components/SuspendDialog";
+
+const getLocalDatetimeString = (date: Date) => {
+  const tzOffset = date.getTimezoneOffset() * 60000;
+  const localISOTime = (new Date(date.getTime() - tzOffset)).toISOString().slice(0, 16);
+  return localISOTime;
+};
 import { 
   Apple, 
   Plus, 
@@ -53,7 +60,7 @@ interface FeedingTabProps {
   inpatient: Inpatient;
   onAsignar: (data: AlimentacionPayload) => Promise<void>;
   onModificar: (id: number, data: Partial<AlimentacionPayload>) => Promise<void>;
-  onSuspender: (id: number) => Promise<void>;
+  onSuspender: (id: number, motivo: string) => Promise<void>;
   isPending?: boolean;
 }
 
@@ -70,6 +77,10 @@ const schema = z.object({
   tipo_dieta_id: z.string().min(1, "Debe seleccionar un tipo de dieta"),
   via_administracion: z.string().min(1, "Debe seleccionar una vía de administración"),
   observaciones: z.string().optional(),
+  restricciones: z.string().optional(),
+  fecha_inicio: z.string().min(1, "Debe seleccionar la fecha de inicio"),
+  fecha_fin: z.string().min(1, "Debe seleccionar la fecha de fin"),
+  tiempos_seleccionados: z.array(z.string()).min(1, "Debe seleccionar al menos un tiempo de comida"),
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -384,6 +395,7 @@ export function FeedingTab({
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [editingAlim, setEditingAlim] = React.useState<Alimentacion | null>(null);
   const [showHistory, setShowHistory] = React.useState(false);
+  const [suspendDietId, setSuspendDietId] = React.useState<number | null>(null);
 
   const user = useAuthStore((state) => state.user);
   const hasPermission = useAuthStore((state) => state.hasPermission);
@@ -397,7 +409,15 @@ export function FeedingTab({
     formState: { errors },
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { tipo_dieta_id: "", via_administracion: "Oral", observaciones: "" },
+    defaultValues: { 
+      tipo_dieta_id: "", 
+      via_administracion: "Oral", 
+      observaciones: "",
+      restricciones: "",
+      fecha_inicio: "",
+      fecha_fin: "",
+      tiempos_seleccionados: [],
+    },
   });
 
   const isAdmin = React.useMemo(() => {
@@ -430,27 +450,49 @@ export function FeedingTab({
   React.useEffect(() => {
     if (dialogOpen) {
       if (editingAlim) {
+        const existingTiempos = (editingAlim as AlimentacionConTiempos).tiempos?.map((t) => t.tiempo_comida) || [];
         reset({
           tipo_dieta_id: String(editingAlim.tipo_dieta_id),
           via_administracion: editingAlim.via_administracion,
-          observaciones: editingAlim.observaciones ?? "",
+          observaciones: editingAlim.descripcion ?? "",
+          restricciones: editingAlim.restricciones ?? "",
+          fecha_inicio: editingAlim.fecha_inicio ? getLocalDatetimeString(new Date(editingAlim.fecha_inicio)) : getLocalDatetimeString(new Date()),
+          fecha_fin: editingAlim.fecha_fin ? getLocalDatetimeString(new Date(editingAlim.fecha_fin)) : getLocalDatetimeString(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)),
+          tiempos_seleccionados: existingTiempos,
         });
       } else {
         reset({
           tipo_dieta_id: tiposDieta[0]?.id ? String(tiposDieta[0].id) : "",
           via_administracion: "Oral",
           observaciones: "",
+          restricciones: "",
+          fecha_inicio: getLocalDatetimeString(new Date()),
+          fecha_fin: getLocalDatetimeString(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)),
+          tiempos_seleccionados: ["Desayuno", "Almuerzo", "Cena"],
         });
       }
     }
   }, [dialogOpen, editingAlim, reset, tiposDieta]);
 
   const onSubmitForm = async (values: FormValues) => {
-    const payload = {
+    const selectedTiempos = Array.isArray(values.tiempos_seleccionados) 
+      ? values.tiempos_seleccionados 
+      : [];
+    const tiemposArray = selectedTiempos.map((t) => ({
+      tiempo_comida: t,
+      descripcion: `Suministro de ${t} según régimen.`,
+    }));
+
+    const payload: AlimentacionPayload = {
       internacion_id: inpatient.id,
       tipo_dieta_id: Number(values.tipo_dieta_id),
       via_administracion: values.via_administracion,
-      observaciones: values.observaciones,
+      frecuencia_tiempos: tiemposArray.length,
+      tiempos: tiemposArray,
+      fecha_inicio: values.fecha_inicio ? new Date(values.fecha_inicio).toISOString() : new Date().toISOString(),
+      fecha_fin: values.fecha_fin ? new Date(values.fecha_fin).toISOString() : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      restricciones: values.restricciones || "",
+      descripcion: values.observaciones || "",
       estado: 0,
     };
 
@@ -537,7 +579,7 @@ export function FeedingTab({
                   </button>
                   <button
                     type="button"
-                    onClick={() => onSuspender(activeAlim.id)}
+                    onClick={() => setSuspendDietId(activeAlim.id)}
                     className="inline-flex h-7 items-center gap-1 rounded-lg border border-destructive/20 bg-destructive/5 hover:bg-destructive/10 text-destructive text-[10px] font-bold px-2.5 cursor-pointer"
                   >
                     <AlertTriangle className="h-3 w-3" />
@@ -625,7 +667,7 @@ export function FeedingTab({
               <Loader2 className="h-4 w-4 animate-spin" /> Cargando catálogo de dietas...
             </div>
           ) : (
-            <form id="feeding-form" onSubmit={handleSubmit(onSubmitForm)} className="my-3 space-y-4">
+            <form id="feeding-form" onSubmit={handleSubmit(onSubmitForm)} className="my-3 space-y-3">
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
                   <label className="text-[9px] font-bold text-muted-foreground uppercase">Tipo de Dieta *</label>
@@ -646,7 +688,7 @@ export function FeedingTab({
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[9px] font-bold text-muted-foreground uppercase">Vía *</label>
+                  <label className="text-[9px] font-bold text-muted-foreground uppercase">Vía de Soporte *</label>
                   <select
                     {...register("via_administracion")}
                     className="w-full h-9 rounded-lg border border-border bg-secondary/50 px-2.5 text-xs outline-none focus:border-primary"
@@ -663,11 +705,70 @@ export function FeedingTab({
                 </div>
               </div>
 
+              {/* Tiempos de Comida (Checkboxes) */}
               <div className="space-y-1">
-                <label className="text-[9px] font-bold text-muted-foreground uppercase">Observaciones / Consignas</label>
+                <label className="text-[9px] font-bold text-muted-foreground uppercase">Tiempos de Comida *</label>
+                <div className="flex flex-wrap gap-2 pt-1">
+                  {["Desayuno", "Merienda AM", "Almuerzo", "Merienda PM", "Cena"].map((t) => (
+                    <label key={t} className="flex items-center gap-1.5 cursor-pointer text-xs font-semibold text-foreground">
+                      <input
+                        type="checkbox"
+                        value={t}
+                        {...register("tiempos_seleccionados")}
+                        className="h-3.5 w-3.5 rounded border-border bg-card text-primary focus:ring-primary focus:ring-1"
+                      />
+                      <span>{t}</span>
+                    </label>
+                  ))}
+                </div>
+                {errors.tiempos_seleccionados && (
+                  <p className="text-[9px] text-destructive font-semibold">{errors.tiempos_seleccionados.message}</p>
+                )}
+              </div>
+
+              {/* Fechas de Suministro */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-[9px] font-bold text-muted-foreground uppercase">Fecha Inicio *</label>
+                  <input
+                    type="datetime-local"
+                    {...register("fecha_inicio")}
+                    className="w-full h-9 rounded-lg border border-border bg-secondary/50 px-2.5 text-xs outline-none focus:border-primary font-mono"
+                  />
+                  {errors.fecha_inicio && (
+                    <p className="text-[9px] text-destructive">{errors.fecha_inicio.message}</p>
+                  )}
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[9px] font-bold text-muted-foreground uppercase">Fecha Fin *</label>
+                  <input
+                    type="datetime-local"
+                    {...register("fecha_fin")}
+                    className="w-full h-9 rounded-lg border border-border bg-secondary/50 px-2.5 text-xs outline-none focus:border-primary font-mono"
+                  />
+                  {errors.fecha_fin && (
+                    <p className="text-[9px] text-destructive">{errors.fecha_fin.message}</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Restricciones */}
+              <div className="space-y-1">
+                <label className="text-[9px] font-bold text-muted-foreground uppercase">Restricciones Dietéticas</label>
+                <input
+                  type="text"
+                  placeholder="Ej: Hiposódica, sin gluten, sin lácteos..."
+                  {...register("restricciones")}
+                  className="w-full h-9 rounded-lg border border-border bg-secondary/50 px-2.5 text-xs outline-none focus:border-primary"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[9px] font-bold text-muted-foreground uppercase">Descripción / Observaciones</label>
                 <textarea
                   {...register("observaciones")}
-                  rows={3}
+                  rows={2}
                   placeholder="Ej: Restringir sodio. Aumentar líquidos orales..."
                   className="w-full rounded-lg border border-border bg-secondary/40 p-2.5 text-xs outline-none resize-none focus:border-primary"
                 />
@@ -695,6 +796,21 @@ export function FeedingTab({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Diet Suspension Dialog */}
+      <SuspendDialog
+        open={suspendDietId !== null}
+        onOpenChange={(open) => !open && setSuspendDietId(null)}
+        title="Suspender Plan Alimenticio"
+        description="El régimen alimentario del paciente se suspenderá de forma inmediata en el sistema."
+        onConfirm={async (motivo) => {
+          if (suspendDietId !== null) {
+            await onSuspender(suspendDietId, motivo);
+            setSuspendDietId(null);
+          }
+        }}
+        isPending={isPending}
+      />
     </div>
   );
 }

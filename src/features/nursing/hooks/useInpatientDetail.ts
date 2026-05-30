@@ -162,7 +162,7 @@ export function useInpatientDetail(internacionId: number) {
 
   // ── Mutation: Suspender dieta ──────────────────────────────────────────────
   const suspenderDieta = useMutation({
-    mutationFn: (id: number) => suspenderAlimentacion(id),
+    mutationFn: ({ id, motivo }: { id: number; motivo: string }) => suspenderAlimentacion(id, motivo),
     onSuccess: () => {
       toast.success("Dieta suspendida.");
       invalidate();
