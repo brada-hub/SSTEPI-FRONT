@@ -17,7 +17,7 @@ const ROLE_VIEWS: RoleViewDefinition[] = [
     color: "text-accent-violet bg-accent-violet/10 border-accent-violet/20",
     permissions: [
       "acceso.dashboard", "acceso.pacientes", "acceso.admision",
-      "acceso.estacion-enfermeria", "acceso.nutricion", "acceso.medicamentos",
+      "acceso.estacion-enfermeria", "acceso.medicamentos",
       "acceso.hospital", "acceso.usuarios-roles",
       "acceso.mis-pacientes", "acceso.panel-internacion"
     ],

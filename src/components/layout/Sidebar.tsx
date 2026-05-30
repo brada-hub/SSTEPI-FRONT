@@ -80,12 +80,6 @@ export function Sidebar({ isMobile = false }: { isMobile?: boolean }) {
           badge: "Alarma",
           badgeColor: "bg-destructive/10 text-destructive animate-pulse",
         },
-        {
-          name: "Nutrición",
-          href: "/nutricion",
-          icon: Apple,
-          permission: "acceso.nutricion",
-        },
       ],
     },
     {
