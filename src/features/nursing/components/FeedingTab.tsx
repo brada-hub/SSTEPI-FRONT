@@ -406,6 +406,7 @@ export function FeedingTab({
     register,
     handleSubmit,
     reset,
+    watch,
     formState: { errors },
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -667,59 +668,86 @@ export function FeedingTab({
               <Loader2 className="h-4 w-4 animate-spin" /> Cargando catálogo de dietas...
             </div>
           ) : (
-            <form id="feeding-form" onSubmit={handleSubmit(onSubmitForm)} className="my-3 space-y-3">
+            <form id="feeding-form" onSubmit={handleSubmit(onSubmitForm)} className="my-3 space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="text-[9px] font-bold text-muted-foreground uppercase">Tipo de Dieta *</label>
+                  <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">Tipo de Dieta *</label>
                   <select
                     {...register("tipo_dieta_id")}
-                    className="w-full h-9 rounded-lg border border-border bg-secondary/50 px-2.5 text-xs outline-none focus:border-primary"
+                    className="w-full h-10 rounded-xl border border-border/80 bg-secondary/35 px-3.5 text-xs font-semibold outline-none focus:border-primary focus:ring-1 focus:ring-primary/25 transition-all text-foreground"
                   >
-                    <option value="">Seleccione dieta...</option>
+                    <option value="" className="bg-card">Seleccione dieta...</option>
                     {tiposDieta.map((d: TipoDieta) => (
-                      <option key={d.id} value={d.id}>
+                      <option key={d.id} value={d.id} className="bg-card">
                         {d.nombre}
                       </option>
                     ))}
                   </select>
                   {errors.tipo_dieta_id && (
-                    <p className="text-[9px] text-destructive">{errors.tipo_dieta_id.message}</p>
+                    <p className="text-[9px] text-destructive font-semibold">{errors.tipo_dieta_id.message}</p>
                   )}
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[9px] font-bold text-muted-foreground uppercase">Vía de Soporte *</label>
+                  <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">Vía de Soporte *</label>
                   <select
                     {...register("via_administracion")}
-                    className="w-full h-9 rounded-lg border border-border bg-secondary/50 px-2.5 text-xs outline-none focus:border-primary"
+                    className="w-full h-10 rounded-xl border border-border/80 bg-secondary/35 px-3.5 text-xs font-semibold outline-none focus:border-primary focus:ring-1 focus:ring-primary/25 transition-all text-foreground"
                   >
                     {VIAS_ALIMENTACION.map((v) => (
-                      <option key={v} value={v}>
+                      <option key={v} value={v} className="bg-card">
                         {v}
                       </option>
                     ))}
                   </select>
                   {errors.via_administracion && (
-                    <p className="text-[9px] text-destructive">{errors.via_administracion.message}</p>
+                    <p className="text-[9px] text-destructive font-semibold">{errors.via_administracion.message}</p>
                   )}
                 </div>
               </div>
 
-              {/* Tiempos de Comida (Checkboxes) */}
-              <div className="space-y-1">
-                <label className="text-[9px] font-bold text-muted-foreground uppercase">Tiempos de Comida *</label>
-                <div className="flex flex-wrap gap-2 pt-1">
-                  {["Desayuno", "Merienda AM", "Almuerzo", "Merienda PM", "Cena"].map((t) => (
-                    <label key={t} className="flex items-center gap-1.5 cursor-pointer text-xs font-semibold text-foreground">
-                      <input
-                        type="checkbox"
-                        value={t}
-                        {...register("tiempos_seleccionados")}
-                        className="h-3.5 w-3.5 rounded border-border bg-card text-primary focus:ring-primary focus:ring-1"
-                      />
-                      <span>{t}</span>
-                    </label>
-                  ))}
+              {/* Tiempos de Comida (Tactile Premium Chips) */}
+              <div className="space-y-1.5">
+                <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">Tiempos de Comida *</label>
+                <div className="flex flex-wrap gap-2 pt-0.5">
+                  {["Desayuno", "Merienda AM", "Almuerzo", "Merienda PM", "Cena"].map((t) => {
+                    const isChecked = watch("tiempos_seleccionados")?.includes(t);
+                    const getIcon = () => {
+                      switch (t) {
+                        case "Desayuno":
+                          return <Coffee className="h-3.5 w-3.5" />;
+                        case "Merienda AM":
+                        case "Merienda PM":
+                          return <Cookie className="h-3.5 w-3.5" />;
+                        case "Almuerzo":
+                          return <Sun className="h-3.5 w-3.5" />;
+                        case "Cena":
+                          return <Moon className="h-3.5 w-3.5" />;
+                        default:
+                          return <Utensils className="h-3.5 w-3.5" />;
+                      }
+                    };
+
+                    return (
+                      <label
+                        key={t}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all cursor-pointer select-none active:scale-95 ${
+                          isChecked
+                            ? "bg-primary text-white border-primary shadow-sm shadow-primary/20 scale-[1.02]"
+                            : "bg-secondary/20 text-muted-foreground border-border/80 hover:bg-secondary/40 hover:text-foreground"
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          value={t}
+                          {...register("tiempos_seleccionados")}
+                          className="sr-only"
+                        />
+                        {getIcon()}
+                        <span>{t}</span>
+                      </label>
+                    );
+                  })}
                 </div>
                 {errors.tiempos_seleccionados && (
                   <p className="text-[9px] text-destructive font-semibold">{errors.tiempos_seleccionados.message}</p>
@@ -729,48 +757,48 @@ export function FeedingTab({
               {/* Fechas de Suministro */}
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="text-[9px] font-bold text-muted-foreground uppercase">Fecha Inicio *</label>
+                  <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">Fecha Inicio *</label>
                   <input
                     type="datetime-local"
                     {...register("fecha_inicio")}
-                    className="w-full h-9 rounded-lg border border-border bg-secondary/50 px-2.5 text-xs outline-none focus:border-primary font-mono"
+                    className="w-full h-10 rounded-xl border border-border/80 bg-secondary/35 px-3.5 text-xs font-semibold outline-none focus:border-primary focus:ring-1 focus:ring-primary/25 transition-all text-foreground font-mono"
                   />
                   {errors.fecha_inicio && (
-                    <p className="text-[9px] text-destructive">{errors.fecha_inicio.message}</p>
+                    <p className="text-[9px] text-destructive font-semibold">{errors.fecha_inicio.message}</p>
                   )}
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[9px] font-bold text-muted-foreground uppercase">Fecha Fin *</label>
+                  <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">Fecha Fin *</label>
                   <input
                     type="datetime-local"
                     {...register("fecha_fin")}
-                    className="w-full h-9 rounded-lg border border-border bg-secondary/50 px-2.5 text-xs outline-none focus:border-primary font-mono"
+                    className="w-full h-10 rounded-xl border border-border/80 bg-secondary/35 px-3.5 text-xs font-semibold outline-none focus:border-primary focus:ring-1 focus:ring-primary/25 transition-all text-foreground font-mono"
                   />
                   {errors.fecha_fin && (
-                    <p className="text-[9px] text-destructive">{errors.fecha_fin.message}</p>
+                    <p className="text-[9px] text-destructive font-semibold">{errors.fecha_fin.message}</p>
                   )}
                 </div>
               </div>
 
               {/* Restricciones */}
               <div className="space-y-1">
-                <label className="text-[9px] font-bold text-muted-foreground uppercase">Restricciones Dietéticas</label>
+                <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">Restricciones Dietéticas</label>
                 <input
                   type="text"
                   placeholder="Ej: Hiposódica, sin gluten, sin lácteos..."
                   {...register("restricciones")}
-                  className="w-full h-9 rounded-lg border border-border bg-secondary/50 px-2.5 text-xs outline-none focus:border-primary"
+                  className="w-full h-10 rounded-xl border border-border/80 bg-secondary/35 px-3.5 text-xs font-semibold outline-none focus:border-primary focus:ring-1 focus:ring-primary/25 transition-all text-foreground"
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="text-[9px] font-bold text-muted-foreground uppercase">Descripción / Observaciones</label>
+                <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">Descripción / Observaciones</label>
                 <textarea
                   {...register("observaciones")}
                   rows={2}
                   placeholder="Ej: Restringir sodio. Aumentar líquidos orales..."
-                  className="w-full rounded-lg border border-border bg-secondary/40 p-2.5 text-xs outline-none resize-none focus:border-primary"
+                  className="w-full rounded-xl border border-border/80 bg-secondary/35 p-3.5 text-xs font-semibold outline-none resize-none focus:border-primary focus:ring-1 focus:ring-primary/25 transition-all text-foreground"
                 />
               </div>
             </form>
