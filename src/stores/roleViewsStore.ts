@@ -49,7 +49,7 @@ const ROLE_VIEWS: RoleViewDefinition[] = [
     icon: "Apple",
     color: "text-accent-amber bg-accent-amber/10 border-accent-amber/20",
     permissions: [
-      "acceso.dashboard", "acceso.nutricion", "acceso.panel-internacion"
+      "acceso.dashboard", "acceso.pacientes", "acceso.mis-pacientes", "acceso.nutricion", "acceso.panel-internacion"
     ],
   },
   {
