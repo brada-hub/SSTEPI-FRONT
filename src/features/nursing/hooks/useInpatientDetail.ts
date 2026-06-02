@@ -182,6 +182,9 @@ export function useInpatientDetail(internacionId: number) {
       invalidate();
       // Invalidate the inpatients list so the discharged patient disappears from nursing station
       queryClient.invalidateQueries({ queryKey: ["inpatients"] });
+      queryClient.invalidateQueries({ queryKey: ["doctor-patients"] });
+      queryClient.invalidateQueries({ queryKey: ["nutrition-inpatients"] });
+      queryClient.invalidateQueries({ queryKey: ["patients"] });
       queryClient.invalidateQueries({ queryKey: ["inpatient-details"] });
       queryClient.invalidateQueries({ queryKey: ["admission-infrastructure"] });
     },
