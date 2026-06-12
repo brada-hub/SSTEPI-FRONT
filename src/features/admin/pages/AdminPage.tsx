@@ -42,7 +42,9 @@ export function AdminPage() {
     updatePermissions, 
     toggleStatus,
     updateRolePermissions,
-    isUpdatingRolePermissions
+    isUpdatingRolePermissions,
+    createRole,
+    isCreatingRole
   } = useAdminMutations();
 
   const handleOpenPermissions = (user: User) => {
@@ -196,6 +198,8 @@ export function AdminPage() {
           permissions={permissions}
           onSaveRolePermissions={handleSaveRolePermissions}
           isSaving={isUpdatingRolePermissions}
+          onCreateRole={createRole}
+          isCreatingRole={isCreatingRole}
         />
       )}
 

@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { ShieldAlert, RefreshCw, ArrowLeft } from "lucide-react";
-import Link from "next/link";
+import { Link } from "react-router-dom";
 
 interface ErrorProps {
   error: Error & { digest?: string };
@@ -53,7 +53,7 @@ export default function ErrorBoundaryPage({ error, reset }: ErrorProps) {
           </button>
           
           <Link
-            href="/dashboard"
+            to="/dashboard"
             className="inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-border bg-background px-4 text-xs font-bold text-foreground hover:bg-secondary transition-all"
           >
             <ArrowLeft className="h-3.5 w-3.5" />

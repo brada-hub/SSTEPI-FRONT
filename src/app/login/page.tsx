@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
+import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -28,35 +28,51 @@ const loginSchema = z.object({
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 
-// Lista de roles preestablecidos para el panel de desarrollo interno (fallback demo)
-const PRESET_ROLES = [
+const CENTER_MEDS = [
+  { id: "1", nombre: "Hospital General SSTEPI" }
+];
+
+const MOCK_CREDENTIALS = [
   {
-    roleName: "Administrador General",
     username: "admin",
-    role: { id: 1, name: "Administrador General", permissions: [
+    password: "123",
+    hospitalId: "1",
+    token: "mock-token-admin",
+    user: { id: 1, name: "Dr. Vegas", username: "admin", email: "admin@sstepi.com" },
+    role: { id: 1, name: "Administrador", permissions: [
       "acceso.dashboard", "acceso.pacientes", "acceso.admision", 
-      "acceso.estacion-enfermeria", "acceso.nutricion", "acceso.medicamentos", 
-      "acceso.hospital", "acceso.usuarios-roles"
+      "acceso.estacion-enfermeria", "acceso.mis-pacientes", "acceso.nutricion", 
+      "acceso.medicamentos", "acceso.usuarios-y-roles", "acceso.gestion-hospital",
+      "acceso.panel-internacion"
     ]}
   },
   {
-    roleName: "Médico de Guardia",
     username: "medico",
+    password: "123",
+    hospitalId: "1",
+    token: "mock-token-medico",
+    user: { id: 2, name: "Dr. House", username: "medico", email: "medico@sstepi.com" },
     role: { id: 2, name: "Médico de Guardia", permissions: [
       "acceso.dashboard", "acceso.pacientes", "acceso.admision", 
-      "acceso.estacion-enfermeria", "acceso.hospital", "acceso.mis-pacientes"
+      "acceso.mis-pacientes", "acceso.panel-internacion"
     ]}
   },
   {
-    roleName: "Estación Enfermería",
     username: "enfermero",
-    role: { id: 3, name: "Lic. Enfermería", permissions: [
+    password: "123",
+    hospitalId: "1",
+    token: "mock-token-enfermero",
+    user: { id: 3, name: "Lic. Clara Ortiz", username: "enfermero", email: "enfermera@sstepi.com" },
+    role: { id: 3, name: "Licenciado de Enfermería", permissions: [
       "acceso.dashboard", "acceso.pacientes", "acceso.estacion-enfermeria"
     ]}
   },
   {
-    roleName: "Nutricionista",
     username: "nutricionista",
+    password: "123",
+    hospitalId: "1",
+    token: "mock-token-nutri",
+    user: { id: 4, name: "Dra. Ana López", username: "nutricionista", email: "nutri@sstepi.com" },
     role: { id: 4, name: "Nutricionista Clínico", permissions: [
       "acceso.dashboard", "acceso.nutricion"
     ]}
@@ -64,7 +80,7 @@ const PRESET_ROLES = [
 ];
 
 export default function LoginPage() {
-  const router = useRouter();
+  const navigate = useNavigate();
   const setSession = useAuthStore((state) => state.setSession);
   const setHospital = useAuthStore((state) => state.setHospital);
   const setLoading = useAuthStore((state) => state.setLoading);
@@ -76,9 +92,9 @@ export default function LoginPage() {
   // Redireccionar si ya está logueado
   React.useEffect(() => {
     if (token) {
-      router.push("/dashboard");
+      navigate("/dashboard");
     }
-  }, [token, router]);
+  }, [token, navigate]);
 
   const {
     register,
@@ -127,7 +143,7 @@ export default function LoginPage() {
 
       setSession(userSession, access_token);
       setHospital(hospitalSession);
-      router.push("/dashboard");
+      navigate("/dashboard");
     } catch (apiError: any) {
       console.warn("⚠️ Falló login real en Laravel, verificando causa:", apiError);
       
@@ -141,7 +157,7 @@ export default function LoginPage() {
       
       await new Promise((resolve) => setTimeout(resolve, 600));
 
-      const matchedPreset = PRESET_ROLES.find(
+      const matchedPreset = MOCK_CREDENTIALS.find(
         (r) => r.username.toLowerCase() === values.username.toLowerCase()
       );
 
@@ -168,7 +184,7 @@ export default function LoginPage() {
       setSession(userSession, "mock-jwt-token-sstepi-2026");
       setHospital(hospitalSession);
 
-      router.push("/dashboard");
+      navigate("/dashboard");
     } finally {
       setLoading(false);
     }

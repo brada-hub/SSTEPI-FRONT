@@ -5,7 +5,7 @@ import { Inpatient, extractValor } from "@/services/nursingService";
 import { calculateAge, calculateBMI } from "@/lib/clinical";
 import { Badge } from "@/components/ui/badge";
 import { Activity, FileText, Bed, ArrowUpRight, Stethoscope } from "lucide-react";
-import Link from "next/link";
+import { Link } from "react-router-dom";
 
 interface InpatientCardProps {
   inpatient: Inpatient;
@@ -96,7 +96,7 @@ export function InpatientCard({ inpatient, onOpenVitals, onOpenNote, onSelect }:
           Abrir Panel Clínico
         </button>
         <Link
-          href={`/pacientes/${inpatient.id}/panel`}
+          to={`/pacientes/${inpatient.id}/panel`}
           className="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-background hover:bg-secondary text-foreground transition-all shrink-0"
           title="Abrir en página dedicada"
         >

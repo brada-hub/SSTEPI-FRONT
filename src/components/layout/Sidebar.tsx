@@ -1,8 +1,7 @@
 "use client";
 
 import * as React from "react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { Link, useLocation } from "react-router-dom";
 import { useAuthStore } from "@/stores/authStore";
 import { useUIStore } from "@/stores/uiStore";
 import { useRoleViewsStore } from "@/stores/roleViewsStore";
@@ -36,7 +35,7 @@ interface LinkGroup {
 }
 
 export function Sidebar({ isMobile = false }: { isMobile?: boolean }) {
-  const pathname = usePathname();
+  const { pathname } = useLocation();
   const hasPermission = useAuthStore((state) => state.hasPermission);
   const logout = useAuthStore((state) => state.logout);
   const { sidebarCollapsed, toggleSidebar, mobileSidebarOpen, toggleMobileSidebar } = useUIStore();
@@ -140,7 +139,7 @@ export function Sidebar({ isMobile = false }: { isMobile?: boolean }) {
         }`}
       >
         <Link 
-          href="/dashboard" 
+          to="/dashboard" 
           className={`flex overflow-hidden select-none transition-all duration-300 ${
             (isMobile || !sidebarCollapsed) 
               ? "flex-col items-center gap-2" 
@@ -206,7 +205,7 @@ export function Sidebar({ isMobile = false }: { isMobile?: boolean }) {
                 return (
                   <li key={item.name}>
                     <Link
-                      href={item.href}
+                      to={item.href}
                       title={!showLabels ? item.name : undefined}
                       className={`group relative flex h-9 items-center justify-between rounded-lg px-3 text-xs font-semibold transition-all duration-300 ${
                         isActive

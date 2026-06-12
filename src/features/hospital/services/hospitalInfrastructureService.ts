@@ -124,6 +124,7 @@ export interface CamaPayload {
   tipo: CamaTipo;
   disponibilidad: CamaDisponibilidad;
   sala_id: number;
+  estado?: boolean;
 }
 
 // ── Dashboard ─────────────────────────────────────────────────────────────────
@@ -218,8 +219,9 @@ export const hospitalInfrastructureService = {
   },
 
   // Camas
-  async getCamas(): Promise<Cama[]> {
-    const res = await api.get<Cama[]>("/camas");
+  async getCamas(incluirInactivas?: boolean): Promise<Cama[]> {
+    const params = incluirInactivas ? { incluir_inactivas: true } : {};
+    const res = await api.get<Cama[]>("/camas", { params });
     return Array.isArray(res.data) ? res.data : [];
   },
 

@@ -177,10 +177,10 @@ export function useDeleteSalaMutation() {
 }
 
 // ── Camas ─────────────────────────────────────────────────────────────────────
-export function useCamasQuery() {
+export function useCamasQuery(incluirInactivas?: boolean) {
   return useQuery({
-    queryKey: QK.camas,
-    queryFn: () => hospitalInfrastructureService.getCamas(),
+    queryKey: incluirInactivas ? [...QK.camas, "incluir-inactivas"] : QK.camas,
+    queryFn: () => hospitalInfrastructureService.getCamas(incluirInactivas),
     staleTime: 30 * 1000,
   });
 }

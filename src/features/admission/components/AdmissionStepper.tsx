@@ -21,13 +21,13 @@ import {
   Search,
 } from "lucide-react";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
+import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { useMedicamentosQuery } from "@/features/nursing/hooks/useCatalogQueries";
 import { createMedicamento } from "@/features/nursing/services/treatmentService";
 
 export function AdmissionStepper() {
-  const router = useRouter();
+  const navigate = useNavigate();
   const [step, setStep] = React.useState(1);
   const { patients, clinicians, isLoadingPatients, isLoadingClinicians, isError } = useAdmissionResources();
   const { data: camasDisponibles, isLoading: isLoadingCamas } = useAdmissionInfrastructureQuery();
@@ -52,6 +52,7 @@ export function AdmissionStepper() {
       cama_id: 0,
       medico_id: 0,
       diagnostico_ingreso: "",
+      fecha_ingreso: new Date().toLocaleDateString("en-CA"), // YYYY-MM-DD local format
       presion_sistolica: 0,
       presion_diastolica: 0,
       frecuencia_cardiaca: 0,
@@ -155,7 +156,7 @@ export function AdmissionStepper() {
   const handleNext = async () => {
     let fieldsToValidate: (keyof AdmissionFormValues)[] = [];
     if (step === 1) {
-      fieldsToValidate = ["paciente_id", "sala_id", "cama_id", "medico_id", "diagnostico_ingreso"];
+      fieldsToValidate = ["paciente_id", "sala_id", "cama_id", "medico_id", "diagnostico_ingreso", "fecha_ingreso"];
     } else if (step === 2) {
       fieldsToValidate = [
         "presion_sistolica", "presion_diastolica", "frecuencia_cardiaca", 
@@ -241,6 +242,7 @@ export function AdmissionStepper() {
           medico_id: Number(values.medico_id),
           motivo: "Ingreso Clínico",
           diagnostico: values.diagnostico_ingreso,
+          fecha_ingreso: values.fecha_ingreso,
           observaciones: "Admisión guiada desde el censo clínico."
         },
         signos_vitales,
@@ -249,7 +251,7 @@ export function AdmissionStepper() {
 
       await createAdmission(backendPayload as any);
       toast.success("Paciente admitido e internado de forma correcta.");
-      router.push("/estacion-enfermeria");
+      navigate("/estacion-enfermeria");
     } catch (error: any) {
       const serverMessage = error?.response?.data?.message || error?.response?.data?.error;
       const validationErrors = error?.response?.data?.errors;
@@ -340,7 +342,7 @@ export function AdmissionStepper() {
                 </div>
               </div>
 
-              <div className="grid gap-4 md:grid-cols-2 border-t border-border/40 pt-4">
+              <div className="grid gap-4 md:grid-cols-3 border-t border-border/40 pt-4">
                 {/* Sala Selector */}
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">Sala de Destino</label>
@@ -381,6 +383,17 @@ export function AdmissionStepper() {
                     ))}
                   </select>
                   {errors.cama_id && <span className="text-[10px] text-destructive">{errors.cama_id.message}</span>}
+                </div>
+
+                {/* Fecha de Ingreso */}
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">Fecha de Ingreso</label>
+                  <input
+                    type="date"
+                    {...register("fecha_ingreso")}
+                    className="w-full h-10 rounded-lg border border-border bg-secondary/50 px-3 text-xs outline-none focus:border-primary cursor-pointer font-semibold text-foreground"
+                  />
+                  {errors.fecha_ingreso && <span className="text-[10px] text-destructive">{errors.fecha_ingreso.message}</span>}
                 </div>
               </div>
 

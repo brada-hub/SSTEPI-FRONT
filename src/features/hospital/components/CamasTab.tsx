@@ -16,9 +16,10 @@ import {
   useCreateCamaMutation,
   useUpdateCamaMutation,
   useDeleteCamaMutation,
+  useCamasQuery,
 } from "@/features/hospital/hooks/useHospitalInfrastructure";
 import { Badge } from "@/components/ui/badge";
-import { Bed, Plus, Pencil, Trash2, Loader2, Search, X, CheckCircle2, Wrench, AlertTriangle } from "lucide-react";
+import { Bed, Plus, Pencil, Trash2, Loader2, Search, X, CheckCircle2, Wrench, AlertTriangle, Eye, EyeOff } from "lucide-react";
 
 const schema = z.object({
   nombre: z.string().min(1, "Nombre requerido").max(100),
@@ -37,15 +38,18 @@ const DISP_CONFIG: Record<CamaDisponibilidad, { label: string; color: string; ic
 
 interface CamasTabProps {
   salas: Sala[];
-  camas: Cama[];
-  isLoading: boolean;
+  camas?: Cama[];
+  isLoading?: boolean;
 }
 
-export function CamasTab({ salas, camas, isLoading }: CamasTabProps) {
+export function CamasTab({ salas }: CamasTabProps) {
   const [search, setSearch] = React.useState("");
   const [salaFilter, setSalaFilter] = React.useState<number | "all">("all");
   const [editing, setEditing] = React.useState<Cama | null>(null);
   const [dialogOpen, setDialogOpen] = React.useState(false);
+  const [showInactive, setShowInactive] = React.useState(false);
+
+  const { data: camas = [], isLoading } = useCamasQuery(showInactive);
 
   const createMut = useCreateCamaMutation();
   const updateMut = useUpdateCamaMutation();
@@ -149,6 +153,17 @@ export function CamasTab({ salas, camas, isLoading }: CamasTabProps) {
               <option key={s.id} value={s.id}>{s.nombre}</option>
             ))}
           </select>
+
+          {/* Toggle de Camas Inactivas */}
+          <label className="flex items-center gap-2 h-9 border border-border bg-card rounded-lg px-3 text-xs font-bold text-foreground cursor-pointer hover:bg-secondary/50 transition-all select-none">
+            <input
+              type="checkbox"
+              checked={showInactive}
+              onChange={(e) => setShowInactive(e.target.checked)}
+              className="rounded border-border bg-card text-primary focus:ring-primary h-3.5 w-3.5"
+            />
+            <span>Ver dadas de baja</span>
+          </label>
         </div>
         <button
           type="button"
@@ -184,12 +199,15 @@ export function CamasTab({ salas, camas, isLoading }: CamasTabProps) {
                         key={cama.id}
                         type="button"
                         onClick={() => openEdit(cama)}
-                        className={`rounded-lg p-2 flex flex-col items-center justify-center gap-1 min-h-[72px] transition-all hover:scale-105 cursor-pointer ${config.color}`}
-                        title={`${cama.nombre} — ${config.label} (${cama.tipo})`}
+                        className={`rounded-lg p-2 flex flex-col items-center justify-center gap-1 min-h-[72px] transition-all hover:scale-105 cursor-pointer ${
+                          !cama.estado ? "bg-secondary/40 text-muted-foreground border border-dashed border-border" : config.color
+                        }`}
+                        title={`${cama.nombre} — ${!cama.estado ? "Inactiva (Baja)" : config.label} (${cama.tipo})`}
                       >
                         <Icon className="h-4 w-4" />
                         <span className="text-[9px] font-black leading-tight text-center">{cama.nombre}</span>
                         <span className="text-[8px] font-semibold opacity-80">{cama.tipo}</span>
+                        {!cama.estado && <span className="text-[7px] bg-destructive/10 text-destructive rounded px-1 mt-0.5 font-bold uppercase">Baja</span>}
                       </button>
                     );
                   })}
@@ -208,13 +226,14 @@ export function CamasTab({ salas, camas, isLoading }: CamasTabProps) {
               <th className="p-3">Tipo</th>
               <th className="p-3">Sala</th>
               <th className="p-3">Disponibilidad</th>
+              <th className="p-3">Estado</th>
               <th className="p-3 text-right pr-4">Acciones</th>
             </tr>
           </thead>
           <tbody>
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={5} className="p-8 text-center text-muted-foreground text-xs">
+                <td colSpan={6} className="p-8 text-center text-muted-foreground text-xs">
                   No se encontraron camas.
                 </td>
               </tr>
@@ -229,25 +248,58 @@ export function CamasTab({ salas, camas, isLoading }: CamasTabProps) {
                     <td className="p-3">
                       <Badge className={`text-[9px] ${config.color}`}>{config.label}</Badge>
                     </td>
+                    <td className="p-3">
+                      {cama.estado ? (
+                        <Badge className="text-[9px] bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">Activa</Badge>
+                      ) : (
+                        <Badge className="text-[9px] bg-destructive/10 text-destructive border border-destructive/20">Inactiva</Badge>
+                      )}
+                    </td>
                     <td className="p-3 text-right pr-4">
                       <div className="flex items-center justify-end gap-1">
-                        <button
-                          type="button"
-                          onClick={() => openEdit(cama)}
-                          className="h-7 w-7 rounded-md border border-border bg-background hover:bg-secondary flex items-center justify-center text-foreground cursor-pointer"
-                          title="Editar"
-                        >
-                          <Pencil className="h-3 w-3" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleDelete(cama)}
-                          disabled={deleteMut.isPending}
-                          className="h-7 w-7 rounded-md border border-destructive/20 bg-destructive/5 text-destructive hover:bg-destructive/10 flex items-center justify-center cursor-pointer disabled:opacity-50"
-                          title="Eliminar"
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </button>
+                        {!cama.estado ? (
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              await updateMut.mutateAsync({
+                                id: cama.id,
+                                payload: {
+                                  nombre: cama.nombre,
+                                  tipo: cama.tipo,
+                                  disponibilidad: cama.disponibilidad,
+                                  sala_id: cama.sala_id,
+                                  estado: true,
+                                },
+                              });
+                            }}
+                            disabled={updateMut.isPending}
+                            className="h-7 px-2 rounded-md border border-emerald-500/20 bg-emerald-500/5 text-emerald-500 hover:bg-emerald-500/10 flex items-center justify-center gap-1 cursor-pointer disabled:opacity-50 font-bold"
+                            title="Reactivar"
+                          >
+                            <CheckCircle2 className="h-3.5 w-3.5" />
+                            <span className="text-[10px]">Reactivar</span>
+                          </button>
+                        ) : (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => openEdit(cama)}
+                              className="h-7 w-7 rounded-md border border-border bg-background hover:bg-secondary flex items-center justify-center text-foreground cursor-pointer"
+                              title="Editar"
+                            >
+                              <Pencil className="h-3 w-3" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDelete(cama)}
+                              disabled={deleteMut.isPending}
+                              className="h-7 w-7 rounded-md border border-destructive/20 bg-destructive/5 text-destructive hover:bg-destructive/10 flex items-center justify-center cursor-pointer disabled:opacity-50"
+                              title="Eliminar"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </button>
+                          </>
+                        )}
                       </div>
                     </td>
                   </tr>

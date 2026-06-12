@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useRouter, usePathname } from "next/navigation";
+import { useNavigate, useLocation, Outlet } from "react-router-dom";
 import { useAuthStore } from "@/stores/authStore";
 import { useUIStore } from "@/stores/uiStore";
 import { useInactivityTimer } from "@/hooks/useInactivityTimer";
@@ -11,13 +11,9 @@ import { OfflineBanner } from "@/components/ui/OfflineBanner";
 import { ShieldAlert, RefreshCw, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-export default function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const router = useRouter();
-  const pathname = usePathname();
+export default function DashboardLayout() {
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
   const token = useAuthStore((state) => state.token);
   const loading = useAuthStore((state) => state.loading);
   const sidebarCollapsed = useUIStore((state) => state.sidebarCollapsed);
@@ -46,9 +42,9 @@ export default function DashboardLayout({
   // Redirección si no está autenticado
   React.useEffect(() => {
     if (isHydrated && !token) {
-      router.push("/login");
+      navigate("/login");
     }
-  }, [isHydrated, token, router]);
+  }, [isHydrated, token, navigate]);
 
   // Loader Clínico si está hidratándose o cargando
   if (!isHydrated || loading) {
@@ -111,7 +107,7 @@ export default function DashboardLayout({
         <Topbar />
         
         <main className="flex-1 p-4 md:p-6 lg:p-8 sso-grid overflow-hidden">
-          {children}
+          <Outlet />
         </main>
       </div>
 

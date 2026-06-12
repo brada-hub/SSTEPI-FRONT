@@ -3,7 +3,7 @@
 import * as React from "react";
 import { AdmissionStepper } from "../components/AdmissionStepper";
 import { UserPlus, ArrowLeft } from "lucide-react";
-import Link from "next/link";
+import { Link } from "react-router-dom";
 
 export function AdmissionPage() {
   return (
@@ -26,7 +26,7 @@ export function AdmissionPage() {
         </div>
 
         <Link
-          href="/dashboard"
+          to="/dashboard"
           className="inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-border bg-background px-3.5 text-xs font-bold text-foreground hover:bg-secondary transition-all self-start sm:self-auto"
         >
           <ArrowLeft className="h-3.5 w-3.5" />

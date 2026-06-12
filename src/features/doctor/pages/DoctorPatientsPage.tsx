@@ -6,7 +6,7 @@ import { Inpatient } from "@/services/nursingService";
 import { LoadingState, ErrorState, EmptyState } from "@/components/ui/clinical-feedback";
 import { Badge } from "@/components/ui/badge";
 import { Stethoscope, Bed, Search, ArrowUpRight } from "lucide-react";
-import Link from "next/link";
+import { Link } from "react-router-dom";
 
 export function DoctorPatientsPage() {
   const { data: patients, isLoading, isError, refetch } = useDoctorPatients();
@@ -111,14 +111,14 @@ function DoctorPatientCard({ inpatient }: { inpatient: Inpatient }) {
 
       <div className="flex items-center gap-2 pt-2 border-t border-border/40">
         <Link
-          href={`/pacientes/${inpatient.id}/panel`}
+          to={`/pacientes/${inpatient.id}/panel`}
           className="flex-1 inline-flex h-8 items-center justify-center gap-1.5 rounded-lg bg-primary px-3 text-[10px] font-bold text-white shadow-sm hover:bg-primary/90 transition-all"
         >
           <Stethoscope className="h-3.5 w-3.5" />
           Abrir Panel Clínico
         </Link>
         <Link
-          href={`/pacientes/${inpatient.id}/panel`}
+          to={`/pacientes/${inpatient.id}/panel`}
           className="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-background hover:bg-secondary text-foreground transition-all shrink-0"
           title="Abrir en página dedicada"
         >

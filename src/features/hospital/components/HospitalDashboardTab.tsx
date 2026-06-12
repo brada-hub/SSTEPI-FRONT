@@ -68,10 +68,11 @@ export function HospitalDashboardTab({ kpis, ocupacionEsp, estadoCamas, camas, i
     );
   }
 
-  const totalCamas = kpis?.total_camas ?? camas.length;
-  const camasOcupadas = kpis?.camas_ocupadas ?? camas.filter((c) => c.disponibilidad === 0).length;
-  const camasDisponibles = kpis?.camas_disponibles ?? camas.filter((c) => c.disponibilidad === 1).length;
-  const camasMantenimiento = camas.filter((c) => c.disponibilidad === 2).length;
+  const cleanCamas = Array.isArray(camas) ? camas : [];
+  const totalCamas = kpis?.total_camas ?? cleanCamas.length;
+  const camasOcupadas = kpis?.camas_ocupadas ?? cleanCamas.filter((c) => c.disponibilidad === 0).length;
+  const camasDisponibles = kpis?.camas_disponibles ?? cleanCamas.filter((c) => c.disponibilidad === 1).length;
+  const camasMantenimiento = cleanCamas.filter((c) => c.disponibilidad === 2).length;
   const ocupacionPct = kpis?.ocupacion_porcentaje ?? (totalCamas > 0 ? Math.round((camasOcupadas / totalCamas) * 100) : 0);
 
   return (

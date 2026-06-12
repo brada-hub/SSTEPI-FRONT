@@ -13,7 +13,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { formatBoliviaCI, calculateAge } from "@/lib/clinical";
 import { Eye, UserCheck, MessageSquare, Search, Stethoscope, History } from "lucide-react";
-import Link from "next/link";
+import { Link } from "react-router-dom";
 
 interface PatientTableProps {
   patients: Patient[];
@@ -125,7 +125,7 @@ export function PatientTable({ patients, onOpenDossier, onOpenEdit, onOpenHistor
                       <div className="flex items-center justify-end gap-1.5">
                         {isInterned && patient.active_internacion && (
                           <Link
-                            href={`/pacientes/${patient.active_internacion.id}/panel`}
+                            to={`/pacientes/${patient.active_internacion.id}/panel`}
                             className="flex h-7 items-center gap-1 rounded-md bg-primary px-2 text-[10px] font-bold text-white shadow-sm hover:bg-primary/90 transition-all"
                             title="Ver Panel de Internación"
                           >

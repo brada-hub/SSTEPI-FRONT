@@ -1,20 +1,20 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useAuthStore } from "@/stores/authStore";
+import { useNavigate } from "react-router-dom";
+import { useAuthStore } from "../stores/authStore";
 
 export default function RootPage() {
-  const router = useRouter();
+  const navigate = useNavigate();
   const token = useAuthStore((state) => state.token);
 
   useEffect(() => {
     if (token) {
-      router.push("/dashboard");
+      navigate("/dashboard");
     } else {
-      router.push("/login");
+      navigate("/login");
     }
-  }, [token, router]);
+  }, [token, navigate]);
 
   return (
     <div className="flex h-screen w-screen items-center justify-center bg-[#07101f]">

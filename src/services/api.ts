@@ -2,7 +2,7 @@ import axios from "axios";
 import { useAuthStore } from "@/stores/authStore";
 
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || "https://web-production-59875.up.railway.app/api",
+  baseURL: (typeof import.meta !== "undefined" && import.meta.env ? (import.meta.env.VITE_API_URL || import.meta.env.NEXT_PUBLIC_API_URL) : null) || process.env.NEXT_PUBLIC_API_URL || "https://web-production-59875.up.railway.app/api",
   timeout: 15000, // 15 segundos de timeout
   headers: {
     "Content-Type": "application/json",

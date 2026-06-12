@@ -14,15 +14,28 @@ import {
   Check,
   CheckSquare,
   MinusSquare,
-  AlertCircle
+  AlertCircle,
+  Plus,
+  Loader2,
+  X
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter
+} from "@/components/ui/dialog";
 
 interface RolesTabProps {
   roles: Role[];
   permissions: Permission[];
   onSaveRolePermissions: (roleId: number, permissionIds: number[]) => Promise<void>;
   isSaving: boolean;
+  onCreateRole: (payload: { nombre: string; descripcion?: string }) => Promise<any>;
+  isCreatingRole: boolean;
 }
 
 export function RolesTab({
@@ -30,10 +43,17 @@ export function RolesTab({
   permissions,
   onSaveRolePermissions,
   isSaving,
+  onCreateRole,
+  isCreatingRole,
 }: RolesTabProps) {
   const [selectedRoleId, setSelectedRoleId] = React.useState<number | null>(null);
   const [checkedPermissionIds, setCheckedPermissionIds] = React.useState<Set<number>>(new Set());
   const [searchTerm, setSearchTerm] = React.useState("");
+  
+  // Estados para creación de nuevo rol
+  const [roleDialogOpen, setRoleDialogOpen] = React.useState(false);
+  const [newRoleName, setNewRoleName] = React.useState("");
+  const [newRoleDesc, setNewRoleDesc] = React.useState("");
 
   // Inicializar el primer rol seleccionado por defecto
   React.useEffect(() => {
@@ -107,11 +127,24 @@ export function RolesTab({
       {/* Panel Izquierdo: Lista de Roles */}
       <div className="md:col-span-4 space-y-4">
         <div className="rounded-xl border border-border bg-card p-4 space-y-3 shadow-sm">
-          <div className="flex items-center gap-2 border-b border-border/40 pb-3">
-            <Award className="h-4.5 w-4.5 text-primary" />
-            <h3 className="text-xs font-bold text-foreground uppercase tracking-wider">
-              Roles del Hospital
-            </h3>
+          <div className="flex items-center justify-between border-b border-border/40 pb-3">
+            <div className="flex items-center gap-2">
+              <Award className="h-4.5 w-4.5 text-primary" />
+              <h3 className="text-xs font-bold text-foreground uppercase tracking-wider">
+                Roles del Hospital
+              </h3>
+            </div>
+            <button
+              onClick={() => {
+                setNewRoleName("");
+                setNewRoleDesc("");
+                setRoleDialogOpen(true);
+              }}
+              className="inline-flex h-6 items-center gap-1 rounded bg-primary px-2 text-[10px] font-bold text-white shadow hover:bg-primary/90 cursor-pointer"
+            >
+              <Plus className="h-3 w-3" />
+              Nuevo
+            </button>
           </div>
           
           <p className="text-[11px] text-muted-foreground leading-relaxed">
@@ -300,6 +333,86 @@ export function RolesTab({
           </div>
         )}
       </div>
+      
+      {roleDialogOpen && (
+        <Dialog open={roleDialogOpen} onOpenChange={setRoleDialogOpen}>
+          <DialogContent maxWidthClass="max-w-sm" onClose={() => setRoleDialogOpen(false)}>
+            <DialogHeader>
+              <div className="flex items-center gap-3">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <Shield className="h-4.5 w-4.5" />
+                </div>
+                <div className="flex flex-col text-left">
+                  <DialogTitle>Registrar Nuevo Rol</DialogTitle>
+                  <DialogDescription>
+                    Crea un nuevo rol clínico para configurar sus accesos en el sistema.
+                  </DialogDescription>
+                </div>
+              </div>
+            </DialogHeader>
+
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                const trimmedName = newRoleName.trim();
+                if (!trimmedName) return;
+                try {
+                  await onCreateRole({ nombre: trimmedName, descripcion: newRoleDesc.trim() || undefined });
+                  setRoleDialogOpen(false);
+                } catch {
+                  // El error ya lo gestiona la mutación
+                }
+              }}
+              className="my-4 space-y-3.5 text-left"
+            >
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-muted-foreground uppercase">Nombre del Rol *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="ej: RADIÓLOGO"
+                  value={newRoleName}
+                  onChange={(e) => setNewRoleName(e.target.value)}
+                  className="w-full h-9 rounded-lg border border-border bg-secondary/50 px-3 text-xs outline-none focus:border-primary font-semibold uppercase"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-muted-foreground uppercase">Descripción</label>
+                <textarea
+                  rows={2}
+                  placeholder="ej: Personal encargado de estudios de imagenología..."
+                  value={newRoleDesc}
+                  onChange={(e) => setNewRoleDesc(e.target.value)}
+                  className="w-full rounded-lg border border-border bg-secondary/50 p-2.5 text-xs outline-none resize-none focus:border-primary font-medium"
+                />
+              </div>
+
+              <DialogFooter>
+                <button
+                  type="button"
+                  onClick={() => setRoleDialogOpen(false)}
+                  className="inline-flex h-9 items-center justify-center rounded-lg border border-border bg-background px-4 text-xs font-bold text-foreground hover:bg-secondary cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={isCreatingRole || !newRoleName.trim()}
+                  className="inline-flex h-9 items-center justify-center gap-1.5 rounded-lg bg-primary px-4 text-xs font-bold text-white shadow-sm hover:bg-primary/95 disabled:opacity-50 cursor-pointer"
+                >
+                  {isCreatingRole ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <Save className="h-3.5 w-3.5" />
+                  )}
+                  Crear Rol
+                </button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }

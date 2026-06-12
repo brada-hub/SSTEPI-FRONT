@@ -12,16 +12,6 @@ interface DialogProps {
 }
 
 export function Dialog({ open, onOpenChange, children }: DialogProps) {
-  // Escuchar tecla escape
-  React.useEffect(() => {
-    if (!open) return;
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onOpenChange(false);
-    };
-    window.addEventListener("keydown", handleEscape);
-    return () => window.removeEventListener("keydown", handleEscape);
-  }, [open, onOpenChange]);
-
   return (
     <AnimatePresence>
       {open && (
@@ -31,7 +21,6 @@ export function Dialog({ open, onOpenChange, children }: DialogProps) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={() => onOpenChange(false)}
             className="absolute inset-0 bg-[#07101f]/75 backdrop-blur-sm"
           />
           {children}

@@ -124,6 +124,35 @@ export const userService = {
       name: p.nombre || p.name || "",
     }));
   },
+
+  /**
+   * Registra un nuevo rol clínico en el backend
+   */
+  async createRole(payload: { nombre: string; descripcion?: string; estado?: boolean }): Promise<Role> {
+    const response = await api.post<any>("/rols", payload);
+    return {
+      id: response.data.id,
+      name: response.data.nombre || response.data.name || "",
+      permissions: []
+    };
+  },
+
+  /**
+   * Obtiene la lista de médicos activos
+   */
+  async getMedicosActivos(): Promise<User[]> {
+    const response = await api.get<any>("/medicos-activos");
+    const rawMedicos = Array.isArray(response.data) ? response.data : [];
+    return rawMedicos.map((m: any) => ({
+      id: m.id,
+      nombre: m.nombre || "",
+      apellidos: m.apellidos || "",
+      name: m.nombre && m.apellidos ? `${m.nombre} ${m.apellidos}` : (m.nombre || m.name || "Médico"),
+      username: `medico_${m.id}`,
+      email: m.email || "",
+      telefono: m.telefono || "",
+    }));
+  },
 };
 
 export default userService;

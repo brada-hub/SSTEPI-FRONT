@@ -34,26 +34,8 @@ export function useAdmissionResources() {
   const cliniciansQuery = useQuery<ClinicianUser[]>({
     queryKey: ["admission-clinicians"],
     queryFn: async () => {
-      const response = await userService.getUsers();
-      const users: ClinicianUser[] = Array.isArray(response)
-        ? response
-        : Array.isArray((response as { data?: unknown })?.data)
-        ? ((response as { data: ClinicianUser[] }).data)
-        : Array.isArray((response as { users?: unknown })?.users)
-        ? ((response as { users: ClinicianUser[] }).users)
-        : [];
-
-      return users.filter((u) => {
-        const role = u.role || u.rol;
-        const roleName = role?.name || role?.nombre || "";
-        const roleNameLower = roleName.toLowerCase();
-        return (
-          roleNameLower.includes("médico") ||
-          roleNameLower.includes("doctor") ||
-          roleNameLower.includes("administrador") ||
-          roleNameLower.includes("admin")
-        );
-      });
+      const response = await userService.getMedicosActivos();
+      return response;
     },
     staleTime: 5 * 60 * 1000,
   });

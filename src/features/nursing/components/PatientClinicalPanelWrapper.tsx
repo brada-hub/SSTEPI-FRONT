@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
+import { useNavigate } from "react-router-dom";
 import { PatientClinicalPanel } from "./PatientClinicalPanel";
 import { useInpatientDetail } from "@/features/nursing/hooks/useInpatientDetail";
 import { Loader2, AlertCircle } from "lucide-react";
@@ -11,7 +11,7 @@ interface PatientClinicalPanelWrapperProps {
 }
 
 export function PatientClinicalPanelWrapper({ internacionId }: PatientClinicalPanelWrapperProps) {
-  const router = useRouter();
+  const navigate = useNavigate();
   const { inpatient, isLoading, isError } = useInpatientDetail(internacionId);
 
   if (isLoading) {
@@ -30,7 +30,7 @@ export function PatientClinicalPanelWrapper({ internacionId }: PatientClinicalPa
         <span className="text-destructive font-semibold">No se pudo cargar el expediente.</span>
         <button
           type="button"
-          onClick={() => router.push("/estacion-enfermeria")}
+          onClick={() => navigate("/estacion-enfermeria")}
           className="mt-2 inline-flex h-8 items-center gap-1.5 rounded-lg bg-primary px-3 text-xs font-bold text-white shadow-sm hover:bg-primary/90 cursor-pointer"
         >
           Volver al Censo
@@ -43,7 +43,7 @@ export function PatientClinicalPanelWrapper({ internacionId }: PatientClinicalPa
     <PatientClinicalPanel
       inpatient={inpatient}
       internacionId={internacionId}
-      onClose={() => router.push("/estacion-enfermeria")}
+      onClose={() => navigate("/estacion-enfermeria")}
     />
   );
 }

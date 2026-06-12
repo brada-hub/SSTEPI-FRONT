@@ -14,6 +14,7 @@ export const admissionSchema = z.object({
   cama_id: z.number().min(1, "Debe seleccionar una cama"),
   medico_id: z.number().min(1, "Debe seleccionar un médico responsable"),
   diagnostico_ingreso: z.string().min(5, "El diagnóstico debe tener al menos 5 caracteres"),
+  fecha_ingreso: z.string().min(1, "Debe seleccionar una fecha de ingreso"),
   
   // Triage Signos Vitales (Opcionales al ingreso pero validados si se ingresan)
   presion_sistolica: z.number().min(50, "Sistólica mínima: 50").max(250, "Sistólica máxima: 250").optional().or(z.literal(0)),

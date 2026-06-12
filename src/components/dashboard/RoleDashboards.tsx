@@ -82,7 +82,7 @@ function OcupacionChart({ data }: { data?: Array<{ especialidad: string; ocupada
 }
 
 function RecientesIngresos({ data }: { data?: Array<{ paciente: string; ci: string; motivo: string; diagnostico: string; cama: string }> }) {
-  const list = data || [];
+  const list = Array.isArray(data) ? data : [];
   return (
     <div className="rounded-2xl border border-border bg-card p-5 space-y-4">
       <div className="flex flex-col">
@@ -219,7 +219,7 @@ export function MedicoDashboard() {
   const { data: myPatients } = useDoctorPatients();
 
   // Filtrar pacientes internados activos (que no tengan fecha de alta)
-  const activePatients = myPatients?.filter((p) => !p.fecha_alta) || [];
+  const activePatients = Array.isArray(myPatients) ? myPatients.filter((p) => !p.fecha_alta) : [];
 
   const kpis = [
     { title: "Pacientes a Cargo", value: `${activePatients.length}`, desc: "Activos bajo tu evolución", icon: Stethoscope, color: "text-primary bg-primary/10" },

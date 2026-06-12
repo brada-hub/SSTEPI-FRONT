@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
+import { useNavigate } from "react-router-dom";
 import { useTheme } from "next-themes";
 import { useAuthStore } from "@/stores/authStore";
 import { useUIStore } from "@/stores/uiStore";
@@ -60,7 +60,7 @@ const DEMO_USERS = [
 ];
 
 export function Topbar() {
-  const router = useRouter();
+  const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
   const user = useAuthStore((state) => state.user);
   const activeHospital = useAuthStore((state) => state.hospital);
@@ -120,7 +120,7 @@ export function Topbar() {
       toast.success(`Sesión real iniciada como: ${userPreset.roleName}`);
       
       // Forzar recarga limpia en el dashboard para aplicar todo el estado real
-      router.push("/dashboard");
+      navigate("/dashboard");
       setTimeout(() => {
         window.location.href = "/dashboard";
       }, 100);
@@ -155,7 +155,7 @@ export function Topbar() {
     queryClient.clear();
     toast.success(`Sesión de demostración (local) activa: ${userPreset.roleName}`);
     
-    router.push("/dashboard");
+    navigate("/dashboard");
     setTimeout(() => {
       window.location.href = "/dashboard";
     }, 100);

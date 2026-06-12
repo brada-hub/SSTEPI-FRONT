@@ -101,6 +101,22 @@ export function useAdminMutations() {
     },
   });
 
+  const createRoleMutation = useMutation({
+    mutationFn: (payload: { nombre: string; descripcion?: string }) => userService.createRole({
+      nombre: payload.nombre,
+      descripcion: payload.descripcion,
+      estado: true
+    }),
+    onSuccess: () => {
+      toast.success("Rol creado correctamente.");
+      queryClient.invalidateQueries({ queryKey: ["admin-roles"] });
+    },
+    onError: (err: unknown) => {
+      const msg = getFirstValidationError(err);
+      toast.error(msg);
+    },
+  });
+
   return {
     createUser: createMutation.mutateAsync,
     isCreating: createMutation.isPending,
@@ -112,6 +128,8 @@ export function useAdminMutations() {
     isTogglingStatus: statusMutation.isPending,
     updateRolePermissions: rolePermissionsMutation.mutateAsync,
     isUpdatingRolePermissions: rolePermissionsMutation.isPending,
+    createRole: createRoleMutation.mutateAsync,
+    isCreatingRole: createRoleMutation.isPending,
   };
 }
 export default useAdminUsers;
